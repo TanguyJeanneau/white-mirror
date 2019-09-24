@@ -22,8 +22,8 @@ def examine(x, sentence):
 def warp_flow(img, flow):
     h, w = flow.shape[:2]
     flow = -flow
-    flow[:,:,0] += np.arange(w)
-    flow[:,:,1] += np.arange(h)[:,np.newaxis]
+    flow[:,:,0] = np.arange(w)
+    flow[:,:,1] = np.arange(h)[:,np.newaxis]
     res = cv2.remap(img, flow, None, cv2.INTER_LINEAR)
     # res = cv2.cvtColor(res, cv2.COLOR_BGR2RGB)
     return res
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
             save_image(f1, 'tmp/{}_opflow1_frame1.jpg'.format(i))
             save_image(f2, 'tmp/{}_opflow1_frame2.jpg'.format(i))
-            save_image(f_img1, 'tmp/{}_opflow1_frame2warp.jpg'.format(i))
+            save_image(f_img1, 'tmp/{}_opflow1_frame1warpedfrom2.jpg'.format(i))
             save_image(flow, 'tmp/{}_opflow1_flow.jpg'.format(i))
-            save_image(raw[..., 0], 'tmp/{}_opflow1_flowraw0.jpg'.format(i))
-            save_image(raw[..., 1], 'tmp/{}_opflow1_flowraw1.jpg'.format(i))
+            # save_image(raw[..., 0], 'tmp/{}_opflow1_flowraw0.jpg'.format(i))
+            # save_image(raw[..., 1], 'tmp/{}_opflow1_flowraw1.jpg'.format(i))
