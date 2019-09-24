@@ -1,10 +1,14 @@
+import torch
 import copy
 import numpy as np
 from torch import from_numpy, transpose
+from torch.autograd import Variable
 from torchvision import transforms
 from torchvision.utils import save_image
 
 from dataset import get_loader
+from utils import reformat
+from transfer import Transfer
 from utils import reformat
 
 import sys
@@ -22,8 +26,8 @@ def examine(x, sentence):
 def warp_flow(img, flow):
     h, w = flow.shape[:2]
     flow = -flow
-    flow[:,:,0] = np.arange(w)
-    flow[:,:,1] = np.arange(h)[:,np.newaxis]
+    flow[:,:,0] += np.arange(w)
+    flow[:,:,1] += np.arange(h)[:,np.newaxis]
     res = cv2.remap(img, flow, None, cv2.INTER_LINEAR)
     # res = cv2.cvtColor(res, cv2.COLOR_BGR2RGB)
     return res
@@ -76,10 +80,7 @@ def opticalflow(img1, img2):
     rgb = np.float32(rgb)
     rgb = array_to_torch(rgb)
     # examine(rgb, 'rgb final')
-
-    f_img1 = warp_flow(img1, flow)
-    f_img1 = array_to_torch(f_img1)
-    return rgb, flow, f_img1
+    return rgb, flow
 
 
 if __name__ == '__main__':
@@ -87,29 +88,44 @@ if __name__ == '__main__':
     data_path = '../v3/video/'    
     img_shape = (640, 360)
     # videonames = ['2_26_s.mp4']
-    videonames = ['output1.mp4']
-    # videonames = ['Neon - 21368.mp4']
+    # videonames = ['output1.mp4']
+    videonames = ['Neon - 21368.mp4']
     # videonames = ['output1.mp4', '9_17_s.mp4', '22_26_s.mp4']
     transform = transforms.ToTensor()
     loader = get_loader(1, data_path, img_shape, transform, video_list=videonames, frame_nb=20, shuffle=False)
+    t =  Transfer(100,
+                  './video/',
+                  './examples/style_img/candy.jpg',
+                  '/home/tfm/.torch/models/vgg19-dcbb9e9d.pth',
+                  1e-4,
+                  2e-1, 1e0, 0, 0,
+                  gpu=True)
+    t.style_net.load_state_dict(torch.load('models/state_dict_STARWORKING_contentandstyle.pth', map_location='cpu'))
     
     for idx, frames in enumerate(loader):
         for i in range(5,7):
-            # Y'a un truc chelou avec les opticalflows, ce la deuieme fois qu'on l'execute f1 deviens blanc ...  a creuser.
+            # Y'a un truc chelou avec les opticalflows, la deuxieme fois qu'on l'execute f1 deviens blanc ...  a creuser.
             f1, f2 = copy.deepcopy((frames[i-1], frames[i]))
-            # examine(f1, 'f1 raw')
 
-            flow, raw, f_img1 = opticalflow(f1, f2)
-            raw = np.array([raw])
-            raw = from_numpy(raw)
-            examine(raw, 'refined raw flow:')
-            # f1 = np.float32(reformat(f1))
-            # f_img1 = warp_flow(f1, flow)
-            # f_img1 = array_to_torch(f_img1)
+            flow, raw = opticalflow(f1, f2)
+            f1_w = warp_flow(np.float32(reformat(f1)), raw)
+            f1_w = array_to_torch(f1_w)
 
-            save_image(f1, 'tmp/{}_opflow1_frame1.jpg'.format(i))
-            save_image(f2, 'tmp/{}_opflow1_frame2.jpg'.format(i))
-            save_image(f_img1, 'tmp/{}_opflow1_frame1warpedfrom2.jpg'.format(i))
-            save_image(flow, 'tmp/{}_opflow1_flow.jpg'.format(i))
-            # save_image(raw[..., 0], 'tmp/{}_opflow1_flowraw0.jpg'.format(i))
-            # save_image(raw[..., 1], 'tmp/{}_opflow1_flowraw1.jpg'.format(i))
+            f1_trans = Variable(f1, requires_grad=True)
+            f2_trans = Variable(f2, requires_grad=True)
+            f1_trans, _ = t.style_net(Variable(f1, requires_grad=True))
+            f2_trans, _ = t.style_net(Variable(f2, requires_grad=True))
+            f1_trans = 0.5 * (f1_trans + 1)
+            f2_trans = 0.5 * (f2_trans + 1)
+            f1_trans_w = warp_flow(np.float32(reformat(f1_trans)), raw)
+            f1_trans_w = array_to_torch(f1_trans_w)
+            # f2_trans_w = reformat(f2_trans)
+            # f2_trans_w = warp_flow(f2_trans_w, flow)
+
+            save_image(f1, 'tmp/{}_frame1.jpg'.format(i))
+            save_image(f2, 'tmp/{}_frame2.jpg'.format(i))
+            save_image(f1_w, 'tmp/{}_frame1warpedinto2.jpg'.format(i))
+            save_image(f1_trans, 'tmp/{}_trans_frame1.jpg'.format(i))
+            save_image(f2_trans, 'tmp/{}_trans_frame2.jpg'.format(i))
+            save_image(f1_trans_w, 'tmp/{}_trans_frame1warpedinto2.jpg'.format(i))
+            save_image(flow, 'tmp/{}_flow.jpg'.format(i))
