@@ -24,6 +24,7 @@ def examine(x, sentence):
     print(x.min(), x.max(), x.mean())
 
 def warp_flow(img, flow):
+    img = np.float32(reformat(img))
     h, w = flow.shape[:2]
     flow = -flow
     flow[:,:,0] += np.arange(w)
@@ -46,8 +47,23 @@ def array_to_torch(x):
 
 
 def confidence_mask(img1, img2):
-    opflow_fwd = opticalflow(img1, img2)
-    opflow_bwd = opticalflow(img2, img1)
+    rgb_f, flow_f = opticalflow(img1, img2)
+    rgb_b, flow_b = opticalflow(img2, img1)
+    f1_w = warp_flow(f1, flow_f)
+    f1_w = array_to_torch(f1_w)
+    f1_w_w = warp_flow(f1, flow_f + flow_b)
+    f1_w_w = array_to_torch(f1_w_w)
+
+    w_w = torch.norm(f1 - f1_w_w, dim=1)**2
+    occlusion_mask = (w_w < 0.01*(torch.norm(f1, dim=1)**2 +
+                                  torch.norm(f1_w_w, dim=1)**2))
+    # save_image(occlusion_mask, 'tmp/aocclusion.jpg')
+    # save_image(f1_w_w, 'tmp/btest.jpg')
+    # save_image(img1, 'tmp/frame1.jpg')
+    # save_image(f1_w, 'tmp/frame1_warpedinto2.jpg')
+    # save_image(img2, 'tmp/frame2.jpg')
+    return occlusion_mask
+
 
 # input is numpy image array
 def opticalflow(img1, img2):
@@ -107,25 +123,33 @@ if __name__ == '__main__':
             # Y'a un truc chelou avec les opticalflows, la deuxieme fois qu'on l'execute f1 deviens blanc ...  a creuser.
             f1, f2 = copy.deepcopy((frames[i-1], frames[i]))
 
-            flow, raw = opticalflow(f1, f2)
-            f1_w = warp_flow(np.float32(reformat(f1)), raw)
+            # Collect optical flow from f1 to f2
+            rgb, flow = opticalflow(f1, f2)
+            examine(rgb, 'rgb')
+            examine(flow, 'flow')
+            # Warp f1 to f2
+            f1_w = warp_flow(f1, flow)
             f1_w = array_to_torch(f1_w)
 
+            # Compute occlusion mask
+            occlusion_mask = confidence_mask(f1, f2)
+            save_image(occlusion_mask, 'tmp/{}__occlusion.jpg'.format(i))
+
+            # Transfer style to f1, f2, and warp f1 stylized using f1 -> f2 optical flow
             f1_trans = Variable(f1, requires_grad=True)
             f2_trans = Variable(f2, requires_grad=True)
             f1_trans, _ = t.style_net(Variable(f1, requires_grad=True))
             f2_trans, _ = t.style_net(Variable(f2, requires_grad=True))
             f1_trans = 0.5 * (f1_trans + 1)
             f2_trans = 0.5 * (f2_trans + 1)
-            f1_trans_w = warp_flow(np.float32(reformat(f1_trans)), raw)
+            f1_trans_w = warp_flow(f1_trans, flow)
             f1_trans_w = array_to_torch(f1_trans_w)
-            # f2_trans_w = reformat(f2_trans)
-            # f2_trans_w = warp_flow(f2_trans_w, flow)
 
+            # Save images for analysis.
             save_image(f1, 'tmp/{}_frame1.jpg'.format(i))
             save_image(f2, 'tmp/{}_frame2.jpg'.format(i))
             save_image(f1_w, 'tmp/{}_frame1warpedinto2.jpg'.format(i))
             save_image(f1_trans, 'tmp/{}_trans_frame1.jpg'.format(i))
             save_image(f2_trans, 'tmp/{}_trans_frame2.jpg'.format(i))
             save_image(f1_trans_w, 'tmp/{}_trans_frame1warpedinto2.jpg'.format(i))
-            save_image(flow, 'tmp/{}_flow.jpg'.format(i))
+            save_image(rgb, 'tmp/{}_rgb.jpg'.format(i))

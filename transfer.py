@@ -219,7 +219,7 @@ if __name__ == '__main__':
     t =  Transfer(100,
                   './video/',
                   './examples/style_img/candy.jpg',
-                  '/home/tanguy/.torch/models/vgg19-dcbb9e9d.pth',
+                  '/home/tfm/.torch/models/vgg19-dcbb9e9d.pth',
                   1e-4,
                   2e-1, 1e0, 0, 0,
                   gpu=True)  # Here to switch CPU/GPU
