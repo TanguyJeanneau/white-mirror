@@ -156,7 +156,9 @@ def vgg19(pretrained=False, **kwargs):
     """
     model = VGG(make_layers(cfg['E']), **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(model_urls['vgg19']))
+        state_dict = model_zoo.load_url(model_urls['vgg19'])
+        state_dict = {k:v for k, v in state_dict.items() if 'class' not in k}
+        model.load_state_dict(state_dict)
     return model
 
 

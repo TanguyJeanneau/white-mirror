@@ -46,7 +46,7 @@ if __name__ == '__main__':
     t =  Transfer(10,
                   './video/',
                   './examples/style_img/wave.png',
-                  '/home/tfm/.torch/models/vgg19-dcbb9e9d.pth',
+                  '/home/alexandre/.torch/models/vgg19-dcbb9e9d.pth',
                   1e-3,
                   1e5, 1e7, 0, 1e-8)
     # loading model
