@@ -177,3 +177,6 @@ def vgg19_bn(pretrained=False, **kwargs):
     print('xxxxVGG19BN CREATED')
     return model
 
+
+if __name__ == '__main__':
+    vgg19_pretrained = vgg19(pretrained=True)
