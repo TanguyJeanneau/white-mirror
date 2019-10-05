@@ -52,8 +52,8 @@ class LossNet(nn.Module):
         print('xxLOSSNET INIT DONE')
 
     def normalize_for_vgg(self, x):
-        mean = torch.tensor([0.485, 0.456, 0.406]).view(-1, 1, 1).cuda()
-        std = torch.tensor([0.229, 0.224, 0.225]).view(-1, 1, 1).cuda()
+        mean = torch.tensor([0.485, 0.456, 0.406]).view(-1, 1, 1)# .cuda()
+        std = torch.tensor([0.229, 0.224, 0.225]).view(-1, 1, 1)# .cuda()
         return (x - mean) / std
 
     def forward(self, x, out_key):

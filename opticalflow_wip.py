@@ -8,7 +8,7 @@ from torchvision.utils import save_image
 
 from dataset import get_loader
 from utils import reformat
-from transfer import Transfer
+# from transfer import Transfer
 from utils import reformat
 
 import sys
@@ -46,17 +46,18 @@ def array_to_torch(x):
     return x
 
 
-def confidence_mask(img1, img2):
-    rgb_f, flow_f = opticalflow(img1, img2)
-    rgb_b, flow_b = opticalflow(img2, img1)
+def confidence_mask(f1, f2):
+    rgb_f, flow_f = opticalflow(f1, f2)
+    rgb_b, flow_b = opticalflow(f2, f1)
     f1_w = warp_flow(f1, flow_f)
     f1_w = array_to_torch(f1_w)
     f1_w_w = warp_flow(f1, flow_f + flow_b)
     f1_w_w = array_to_torch(f1_w_w)
 
     w_w = torch.norm(f1 - f1_w_w, dim=1)**2
+    # Parameters to be adjusted
     occlusion_mask = (w_w < 0.01*(torch.norm(f1, dim=1)**2 +
-                                  torch.norm(f1_w_w, dim=1)**2))
+                                  torch.norm(f1_w_w, dim=1)**2))# - 0.005)
     # save_image(occlusion_mask, 'tmp/aocclusion.jpg')
     # save_image(f1_w_w, 'tmp/btest.jpg')
     # save_image(img1, 'tmp/frame1.jpg')
@@ -105,8 +106,9 @@ if __name__ == '__main__':
     img_shape = (640, 360)
     # videonames = ['2_26_s.mp4']
     # videonames = ['output1.mp4']
-    videonames = ['Neon - 21368.mp4']
+    # videonames = ['Neon - 21368.mp4']
     # videonames = ['output1.mp4', '9_17_s.mp4', '22_26_s.mp4']
+    videonames = ['22_26_s.mp4']
     transform = transforms.ToTensor()
     loader = get_loader(1, data_path, img_shape, transform, video_list=videonames, frame_nb=20, shuffle=False)
     t =  Transfer(100,
@@ -133,7 +135,6 @@ if __name__ == '__main__':
 
             # Compute occlusion mask
             occlusion_mask = confidence_mask(f1, f2)
-            save_image(occlusion_mask, 'tmp/{}__occlusion.jpg'.format(i))
 
             # Transfer style to f1, f2, and warp f1 stylized using f1 -> f2 optical flow
             f1_trans = Variable(f1, requires_grad=True)
@@ -153,3 +154,4 @@ if __name__ == '__main__':
             save_image(f2_trans, 'tmp/{}_trans_frame2.jpg'.format(i))
             save_image(f1_trans_w, 'tmp/{}_trans_frame1warpedinto2.jpg'.format(i))
             save_image(rgb, 'tmp/{}_rgb.jpg'.format(i))
+            save_image(occlusion_mask, 'tmp/{}__occlusion.jpg'.format(i))
