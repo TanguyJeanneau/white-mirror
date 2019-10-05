@@ -49,20 +49,15 @@ def array_to_torch(x):
 def confidence_mask(f1, f2):
     rgb_f, flow_f = opticalflow(f1, f2)
     rgb_b, flow_b = opticalflow(f2, f1)
-    f1_w = warp_flow(f1, flow_f)
-    f1_w = array_to_torch(f1_w)
     f1_w_w = warp_flow(f1, flow_f + flow_b)
     f1_w_w = array_to_torch(f1_w_w)
+    f1_w_w = f1_w_w.to(device=0)
 
     w_w = torch.norm(f1 - f1_w_w, dim=1)**2
     # Parameters to be adjusted
     occlusion_mask = (w_w < 0.01*(torch.norm(f1, dim=1)**2 +
                                   torch.norm(f1_w_w, dim=1)**2))# - 0.005)
-    # save_image(occlusion_mask, 'tmp/aocclusion.jpg')
-    # save_image(f1_w_w, 'tmp/btest.jpg')
-    # save_image(img1, 'tmp/frame1.jpg')
-    # save_image(f1_w, 'tmp/frame1_warpedinto2.jpg')
-    # save_image(img2, 'tmp/frame2.jpg')
+    occlusion_mask = occlusion_mask.type('torch.FloatTensor')
     return occlusion_mask
 
 
@@ -84,14 +79,14 @@ def opticalflow(img1, img2):
                                         winsize=15, iterations=3,# wb 2?
                                         poly_n=5, poly_sigma=1.2,# wb 1.1?
                                         flags=0)
-    examine(flow, 'flow:')
+    # examine(flow, 'flow:')
 
     hsv = np.zeros_like(img1, np.uint8)
     hsv[:, :, 1] = 255
     mag, ang = cv2.cartToPolar(flow[...,0], flow[...,1])
     hsv[...,0] = ang*180/np.pi/2
     hsv[...,2] = cv2.normalize(mag,None,0,255,cv2.NORM_MINMAX)
-    examine(hsv, 'final hsv:')
+    # examine(hsv, 'final hsv:')
 
     rgb = cv2.cvtColor(hsv,cv2.COLOR_HSV2RGB)
     rgb = np.float32(rgb)

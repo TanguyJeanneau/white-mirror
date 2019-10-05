@@ -9,7 +9,7 @@ import time
 from style_network import *
 from loss_network import *
 from dataset import get_loader
-from opticalflow_wip import opticalflow, warp_flow, confidence_mask
+from opticalflow_wip import opticalflow, warp_flow, confidence_mask, array_to_torch
 
 
 class Transfer:
@@ -97,7 +97,7 @@ class Transfer:
                     # load frames
                     x_t = Variable(frames[i], requires_grad=True)
                     x_t1 = Variable(frames[i-1], requires_grad=True)
-                    print('1')
+                    # print('1')
                     if self.gpu:
                         x_t = x_t.cuda()
                         x_t1 = x_t1.cuda()
@@ -105,21 +105,21 @@ class Transfer:
                     # compute outputs
                     h_xt, allimgs = self.style_net(x_t)
                     h_xt1, _ = self.style_net(x_t1)
-                    print('2')
+                    # print('2')
 
                     # calculate loss network outputs
                     s_xt = self.loss_net(x_t, self.style_layer)
                     s_xt1 = self.loss_net(x_t1, self.style_layer)
                     s_hxt = self.loss_net(h_xt, self.style_layer)
                     s_hxt1 = self.loss_net(h_xt1, self.style_layer)
-                    print('3')
+                    # print('3')
 
                     # calculate content loss
                     # why s_xt[3] => content features from conv4_2 layer
                     content_t = self.content_loss(s_xt[3], s_hxt[3])
                     content_t1 = self.content_loss(s_xt1[3], s_hxt1[3])
                     content_loss = content_t + content_t1
-                    print('4')
+                    # print('4')
 
                     # calculate style loss
                     style_t = 0
@@ -131,7 +131,7 @@ class Transfer:
                         style_t += coef * self.style_loss(s[k], s_hxt[k])
                         style_t1 += coef * self.style_loss(s[k], s_hxt1[k])
                     style_loss = style_t + style_t1
-                    print('5')
+                    # print('5')
 
                     # # calculate total varation loss
                     # # to FIX AND OPTIMIZE
@@ -144,11 +144,13 @@ class Transfer:
                     # TO FIX
                     rgb, flow = opticalflow(h_xt, h_xt1)
                     h_xt_w = warp_flow(h_xt, flow)
+                    h_xt_w = array_to_torch(h_xt_w)
+                    h_xt_w = h_xt_w.to(device=0)
                     occlusion_mask = confidence_mask(h_xt, h_xt1)
 
                     if self.gpu:
-                       flow = flow.cuda()
                        occlusion_mask = occlusion_mask.cuda()
+                    # print('6')
 
                     # calculate temporal loss
                     temporal_loss = self.temporal_loss(h_xt1, h_xt_w, occlusion_mask)
@@ -156,10 +158,12 @@ class Transfer:
                     # putting it all together
                     spatial_loss =  self.s_b * style_loss + self.s_a * content_loss #+ self.s_r * tv_loss 
                     Loss = spatial_loss + self.t_l * temporal_loss 
+                    # print('7')
 
                     # Optimization
                     Loss.backward(retain_graph=True)
                     adam.step()
+                    # print('8')
 
                     # printing stuff
                     print('{}/{} frame'.format(i, lf))
@@ -226,20 +230,20 @@ if __name__ == '__main__':
     print('loading')
     # Init transfer class
     t =  Transfer(100,
-                  './video/',
-                  './examples/style_img/candy.jpg',
-                  '/home/tfm/.torch/models/vgg19-dcbb9e9d.pth',
+                  '/floyd/input/videos/',
+                  './examples/style_img/wave.png',
+                  '/floyd/home/vgg19-dcbb9e9d.pth',
                   1e-4,
-                  2e-1, 1e0, 0, 0,
-                  gpu=False)  # Here to switch CPU/GPU
+                  5e-1, 1e0, 0, 1e5,
+                  gpu=True)  # Here to switch CPU/GPU
 
     # Load pretrained style
     # print('loading pretrained style...')
     # t.style_net.load_state_dict(torch.load('model/state_dict_STARWORKING_contentandstyle.pth'))
 
-    # # some infos
-    # device_nb = torch.cuda.current_device()
-    # device_name = torch.cuda.get_device_name(device_nb)
+    # some infos
+    device_nb = torch.cuda.current_device()
+    device_name = torch.cuda.get_device_name(device_nb)
     if t.gpu:
         print('GPU processing ENABLED on {}'.format(device_name))
     else:
