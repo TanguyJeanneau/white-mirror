@@ -72,7 +72,7 @@ class Transfer:
         adam = optim.Adam(self.style_net.parameters(), lr=self.lr)
         
         print('loading data')
-        loader = get_loader(1, self.data_path, self.img_shape, self.transform, frame_nb=4+1)
+        loader = get_loader(1, self.data_path, self.img_shape, self.transform, frame_nb=16+1)
 
         # Save losses under .csv file
         with open('loss.csv', 'w') as f:
@@ -84,6 +84,7 @@ class Transfer:
         s = self.loss_net(style_img, self.style_layer)
         print("Let's go")
         for count in range(self.epoch):
+            t1 = time.time()
             vidnb = 0
             for step, frames in enumerate(loader):
                 vidnb += 1
@@ -222,6 +223,10 @@ class Transfer:
             print('XX    END OF EPOCH {}'.format(count))
             print('XXXXXXXXXXXXXXXXXXXXXXXXX')
             print('XXXXXXXXXXXXXXXXXXXXXXXXX')
+            t2 = time.time()
+            print('XX  TOTAL DURATION {}s'.format(t2-t1))
+            print('XXXXXXXXXXXXXXXXXXXXXXXXX')
+            print('XXXXXXXXXXXXXXXXXXXXXXXXX')
 
 
 if __name__ == '__main__':
@@ -230,9 +235,9 @@ if __name__ == '__main__':
     print('loading')
     # Init transfer class
     t =  Transfer(100,
-                  '/floyd/input/videos/',
+                  '/root/white-mirror/video/',
                   './examples/style_img/wave.png',
-                  '/floyd/home/vgg19-dcbb9e9d.pth',
+                  '/root/.torch/models/vgg19-dcbb9e9d.pth',
                   1e-4,
                   5e-1, 1e0, 0, 1e5,
                   gpu=True)  # Here to switch CPU/GPU
