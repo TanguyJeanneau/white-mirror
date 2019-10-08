@@ -46,16 +46,17 @@ def array_to_torch(x):
     return x
 
 
-def confidence_mask(f1, f2):
+def confidence_mask(f1, f2, gpu=True):
     rgb_f, flow_f = opticalflow(f1, f2)
     rgb_b, flow_b = opticalflow(f2, f1)
     f1_w_w = warp_flow(f1, flow_f + flow_b)
     f1_w_w = array_to_torch(f1_w_w)
-    f1_w_w = f1_w_w.to(device=0)
+    if gpu:
+        f1_w_w = f1_w_w.to(device=0)
 
     w_w = torch.norm(f1 - f1_w_w, dim=1)**2
     # Parameters to be adjusted
-    occlusion_mask = (w_w < 0.01*(torch.norm(f1, dim=1)**2 +
+    occlusion_mask = (w_w < 0.005*(torch.norm(f1, dim=1)**2 +
                                   torch.norm(f1_w_w, dim=1)**2))# - 0.005)
     occlusion_mask = occlusion_mask.type('torch.FloatTensor')
     return occlusion_mask
@@ -97,7 +98,7 @@ def opticalflow(img1, img2):
 
 if __name__ == '__main__':
     
-    data_path = '../v3/video/'    
+    data_path = '../dataset-video-1/'    
     img_shape = (640, 360)
     # videonames = ['2_26_s.mp4']
     # videonames = ['output1.mp4']
@@ -107,16 +108,18 @@ if __name__ == '__main__':
     transform = transforms.ToTensor()
     loader = get_loader(1, data_path, img_shape, transform, video_list=videonames, frame_nb=20, shuffle=False)
     t =  Transfer(100,
-                  './video/',
+                  '../dataset-video-1/',
                   './examples/style_img/candy.jpg',
                   '/home/tfm/.torch/models/vgg19-dcbb9e9d.pth',
                   1e-4,
                   2e-1, 1e0, 0, 0,
-                  gpu=True)
+                  gpu=False)
     t.style_net.load_state_dict(torch.load('models/state_dict_STARWORKING_contentandstyle.pth', map_location='cpu'))
     
     for idx, frames in enumerate(loader):
         for i in range(5,7):
+            print(i)
+            print(len(frames))
             # Y'a un truc chelou avec les opticalflows, la deuxieme fois qu'on l'execute f1 deviens blanc ...  a creuser.
             f1, f2 = copy.deepcopy((frames[i-1], frames[i]))
 
@@ -129,7 +132,7 @@ if __name__ == '__main__':
             f1_w = array_to_torch(f1_w)
 
             # Compute occlusion mask
-            occlusion_mask = confidence_mask(f1, f2)
+            occlusion_mask = confidence_mask(f1, f2, t.gpu)
 
             # Transfer style to f1, f2, and warp f1 stylized using f1 -> f2 optical flow
             f1_trans = Variable(f1, requires_grad=True)

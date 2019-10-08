@@ -146,9 +146,9 @@ class Transfer:
                     rgb, flow = opticalflow(h_xt, h_xt1)
                     h_xt_w = warp_flow(h_xt, flow)
                     h_xt_w = array_to_torch(h_xt_w)
-                    h_xt_w = h_xt_w.to(device=0)
-                    occlusion_mask = confidence_mask(h_xt, h_xt1)
-
+                    if self.gpu:
+                        h_xt_w = h_xt_w.to(device=0)
+                    occlusion_mask = confidence_mask(h_xt, h_xt1, self.gpu)
                     if self.gpu:
                        occlusion_mask = occlusion_mask.cuda()
                     # print('6')
