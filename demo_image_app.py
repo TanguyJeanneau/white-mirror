@@ -27,7 +27,7 @@ def truc():
     return img
 
 if __name__ == '__main__':
-    impath = '../imfolder'
+    impath = '../imfolder/ttt'
     get_url = 'http://127.0.0.1:5000/img?img_path={}&id={}'
     post_url = 'http://127.0.0.1:5000/imglive'
     # loading IMAGES NAMES

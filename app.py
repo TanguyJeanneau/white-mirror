@@ -7,8 +7,8 @@ import jsonpickle
 import io
 
 from transfer import *
-from demo_images import load_image_as_tensor, style_transfer
-from main import reformat
+from demo_images import load_image_as_tensor
+from main import style_transfer, reformat
 
 app = Flask(__name__)
 
