@@ -5,10 +5,7 @@ from torchvision.utils import save_image
 
 from dataset import get_loader
 from utils import reformat
-
-import sys
-sys.path.extend(["/usr/local/anaconda3/lib/python3.6/site-packages/",
-                 "/home/tanguy/.conda/envs/venv/lib/python3.7/site-packages"])
+from transfer import *
 import cv2
 
 
@@ -87,7 +84,7 @@ def opticalflow1(img1, img2):
 
 if __name__ == '__main__':
     
-    data_path = 'video/'    
+    data_path = VIDEO_PATH    
     img_shape = (640, 360)
     videonames = ['9_17_s.mp4']
     # videonames = ['output1.mp4', '9_17_s.mp4', '22_26_s.mp4']

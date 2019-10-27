@@ -8,12 +8,17 @@ from torchvision.utils import save_image
 
 from dataset import get_loader
 from utils import reformat
-from transfer import Transfer
+
+if __name__ == '__main__':
+    from transfer import Transfer
+else:
+    try:
+        from transfer import Transfer
+    except:
+        print("could not import transfer.py; it is normal if youare running it, else, please check wth is happening :)")
 
 import sys
-USER = 'arthur'
-GPU = False
-VIDEO_PATH = 'video/'
+from configuration import *
 
 sys.path.extend(["/usr/local/anaconda3/lib/python3.6/site-packages/",
                  "/home/{}/.conda/envs/venv/lib/python3.7/site-packages".format(USER)])
