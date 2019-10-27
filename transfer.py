@@ -19,7 +19,6 @@ else:
     except:
 
         print("could not import opticalflow_wip.py or dataset.py; it is normal if you are running opticalflow_wip.py, else, please check wth is happening :)")
-from configuration import *
 
 
 class Transfer:
