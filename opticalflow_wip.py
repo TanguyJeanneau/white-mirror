@@ -13,6 +13,7 @@ from transfer import Transfer
 import sys
 USER = 'arthur'
 GPU = False
+VIDEO_PATH = 'video/'
 
 sys.path.extend(["/usr/local/anaconda3/lib/python3.6/site-packages/",
                  "/home/{}/.conda/envs/venv/lib/python3.7/site-packages".format(USER)])
@@ -47,8 +48,7 @@ def array_to_torch(x):
     return x
 
 
-def confidence_mask(f1, f2, gpu = False):
-    global a, b
+def confidence_mask(f1, f2, gpu=True):
     rgb_f, flow_f = opticalflow(f1, f2)
     rgb_b, flow_b = opticalflow(f2, f1)
     f1_w_w = warp_flow(f1, flow_f + flow_b)
@@ -56,11 +56,9 @@ def confidence_mask(f1, f2, gpu = False):
     if gpu:
         f1_w_w = f1_w_w.to(device=0)
     
-    a = f1_w_w
-    b = flow_b
     w_w = torch.norm(f1 - f1_w_w, dim=1)**2
     # Parameters to be adjusted
-    occlusion_mask = (w_w < 0.01*(torch.norm(f1, dim=1)**2 +
+    occlusion_mask = (w_w < 0.005*(torch.norm(f1, dim=1)**2 +
                                   torch.norm(f1_w_w, dim=1)**2))# - 0.005)
     occlusion_mask = occlusion_mask.type('torch.FloatTensor')
     return occlusion_mask
@@ -102,7 +100,7 @@ def opticalflow(img1, img2):
 
 if __name__ == '__main__':
     
-    data_path = 'video/'    
+    data_path = VIDEO_PATH   
     img_shape = (640, 360)
     # videonames = ['2_26_s.mp4']
     # videonames = ['output1.mp4']
@@ -112,16 +110,19 @@ if __name__ == '__main__':
     transform = transforms.ToTensor()
     loader = get_loader(1, data_path, img_shape, transform, video_list=videonames, frame_nb=20, shuffle=False)
     t =  Transfer(100,
-                  'video/',
+                  VIDEO_PATH,
                   './examples/style_img/candy.jpg',
                   '/home/{}/.torch/models/vgg19-dcbb9e9d.pth'.format(USER),
                   1e-4,
                   2e-1, 1e0, 0, 0,
                   gpu=GPU)
+                  
     t.style_net.load_state_dict(torch.load('models/state_dict_STARWORKING_contentandstyle.pth', map_location='cpu'))
     
     for idx, frames in enumerate(loader):
         for i in range(5,7):
+            print(i)
+            print(len(frames))
             # Y'a un truc chelou avec les opticalflows, la deuxieme fois qu'on l'execute f1 deviens blanc ...  a creuser.
             f1, f2 = copy.deepcopy((frames[i-1], frames[i]))
 

@@ -3,8 +3,6 @@ import torch
 from torchvision.utils import save_image
 from torchvision import transforms
 
-sys.path.extend(["/usr/local/anaconda3/lib/python3.6/site-packages/",
-                 "/home/tanguy/.conda/envs/venv/lib/python3.7/site-packages"])
 import cv2
 import glob
 from PIL import Image
@@ -51,6 +49,7 @@ def load_image_as_tensor(filename, size=None, scale=None, keep_asp=False):
 
 if __name__ == '__main__':
     impath = '../imfolder'
+    style_path = 'models/state_dict_WAVEWORKING_stylecontent.pth'
     t =  Transfer(10,
                   './video/',
                   './examples/style_img/wave.png',
@@ -61,10 +60,9 @@ if __name__ == '__main__':
     # loading model
     print('loading state_dict')
     if t.gpu:
-        t.style_net.load_state_dict(torch.load('../state_dict_WAVEWORKING_stylecontent.pth'))
+        t.style_net.load_state_dict(torch.load(style_path))
     else:
-        t.style_net.load_state_dict(torch.load('../state_dict_STARWORKING_contentandstyle.pth',  map_location='cpu'))
-    # t.style_net.load_state_dict(torch.load('model/state_dict_inlearning_styley3.pth'))
+        t.style_net.load_state_dict(torch.load(style_path,  map_location='cpu'))
 
     # loading IMAGES NAMES
     files = get_files_path(impath)
@@ -77,11 +75,8 @@ if __name__ == '__main__':
     width = 640
     height = 360
 
-    print(files)
-
     for i in range(len(files)):
         print('{}/{}'.format(i, len(files)))
-        t1 = time.time()
 
         # get frame
         frame = load_image_as_tensor(files[i], scale=2)
@@ -90,14 +85,8 @@ if __name__ == '__main__':
 
         # get processed image
         output = style_transfer(frame, t)
-
-        # convert image types
-        # frame = reformat(frame)
-        # output = reformat(output)
+        output = (1 + output)/2
 
         # save imgs
         save_image(output, '{}/results/{}_star_{}.jpg'.format(impath, i, 'out'))
         save_image(frame, '{}/results/{}_star_{}.jpg'.format(impath, i, 'in'))
-
-        t2 = time.time()
-        print('{0:.3f} s'.format(t2-t1))

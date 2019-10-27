@@ -10,7 +10,7 @@ from style_network import *
 from loss_network import *
 from dataset import get_loader
 #from opticalflow_wip import opticalflow, warp_flow, confidence_mask, array_to_torch
-
+VIDEO_PATH = 'video/'
 
 class Transfer:
     def __init__(self, epoch, data_path, style_path, vgg_path, lr, spatial_a, spatial_b, spatial_r, temporal_lambda, gpu=False, img_shape=(640, 360)):
@@ -73,7 +73,7 @@ class Transfer:
         adam = optim.Adam(self.style_net.parameters(), lr=self.lr)
         
         print('loading data')
-        loader = get_loader(1, self.data_path, self.img_shape, self.transform, frame_nb=4+1)
+        loader = get_loader(1, self.data_path, self.img_shape, self.transform, frame_nb=16+1)
 
         # Save losses under .csv file
         with open('loss.csv', 'w') as f:
@@ -85,6 +85,7 @@ class Transfer:
         s = self.loss_net(style_img, self.style_layer, self.gpu)
         print("Let's go")
         for count in range(self.epoch):
+            t1 = time.time()
             vidnb = 0
             for step, frames in enumerate(loader):
                 vidnb += 1
@@ -146,9 +147,9 @@ class Transfer:
                     rgb, flow = opticalflow(h_xt, h_xt1)
                     h_xt_w = warp_flow(h_xt, flow)
                     h_xt_w = array_to_torch(h_xt_w)
-                    h_xt_w = h_xt_w.to(device=0)
-                    occlusion_mask = confidence_mask(h_xt, h_xt1)
-
+                    if self.gpu:
+                        h_xt_w = h_xt_w.to(device=0)
+                    occlusion_mask = confidence_mask(h_xt, h_xt1, self.gpu)
                     if self.gpu:
                        occlusion_mask = occlusion_mask.cuda()
                     # print('6')
@@ -224,6 +225,10 @@ class Transfer:
             print('XX    END OF EPOCH {}'.format(count))
             print('XXXXXXXXXXXXXXXXXXXXXXXXX')
             print('XXXXXXXXXXXXXXXXXXXXXXXXX')
+            t2 = time.time()
+            print('XX  TOTAL DURATION {}s'.format(t2-t1))
+            print('XXXXXXXXXXXXXXXXXXXXXXXXX')
+            print('XXXXXXXXXXXXXXXXXXXXXXXXX')
 
 
 if __name__ == '__main__' and False:
@@ -232,7 +237,7 @@ if __name__ == '__main__' and False:
     print('loading')
     # Init transfer class
     t =  Transfer(100,
-                  './video/',
+                  VIDEO_PATH,
                   './examples/style_img/wave.png',
                   '/home/arthur/.torch/models/vgg19-dcbb9e9d.pth',
                   1e-4,

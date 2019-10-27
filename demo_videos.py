@@ -1,10 +1,10 @@
 import numpy as np
 import torch
 from torchvision import transforms
-
 import cv2
 
 from utils import reformat
+import main
 from transfer import *
 
 """
@@ -22,7 +22,7 @@ def style_transfer(res, t):
 
 if __name__ == '__main__':
     t =  Transfer(10,
-                  '../v3/video/',
+                  './video/',
                   './examples/style_img/wave.png',
                   '/home/arthur/.torch/models/vgg19-dcbb9e9d.pth',
                   1e-3,
@@ -31,9 +31,10 @@ if __name__ == '__main__':
     # loading model
     print('loading state_dict')
     if t.gpu:
-        t.style_net.load_state_dict(torch.load('./models/state_dict_WAVEWORKING_stylecontent.pth'))
+        t.style_net.load_state_dict(torch.load('models/state_dict_WAVEWORKING_stylecontent.pth'))
     else:
-        t.style_net.load_state_dict(torch.load('./models/state_dict_WAVEWORKING_stylecontent.pth', map_location='cpu'))
+        t.style_net.load_state_dict(torch.load('models/state_dict_WAVEWORKING_stylecontent.pth', map_location='cpu'))
+        
     # t.style_net.load_state_dict(torch.load('model/state_dict_inlearning_styley3.pth'))
 
     # loading video
@@ -43,7 +44,7 @@ if __name__ == '__main__':
     # videonames = ['10_21_s.mp4', '28_14_s.mp4', '1_8_s.mp4'] #star
     # videonames = ['Neon - 21368.mp4', '15_25_s.mp4'] #mosaic
     transform = transforms.ToTensor()
-    loader = get_loader(1, t.data_path, t.img_shape, transform, video_list=videonames, frame_nb=1440, shuffle=False)
+    loader = get_loader(1, t.data_path, t.img_shape, transform, video_list=videonames, frame_nb=10, shuffle=False)
     
     # activating gpu mode
     if t.gpu:
@@ -54,6 +55,7 @@ if __name__ == '__main__':
     height = 360
 
 
+    print('ready')
     count = 0
     for step, frames in enumerate(loader):
         # open cam
@@ -66,7 +68,7 @@ if __name__ == '__main__':
         fourcc = cv2.VideoWriter_fourcc('F','M','P','4')
         out = cv2.VideoWriter('output_test{}.mp4'.format(count+8), fourcc, 20.0, (2*width, height))
         print(len(frames))
-        for i in range(len(frames)):
+        for i in range(10):
             print('{}/{}'.format(i, len(frames)))
             t1 = time.time()
 
