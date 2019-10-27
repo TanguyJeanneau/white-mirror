@@ -51,13 +51,16 @@ class LossNet(nn.Module):
         self.conv5_4 = model_list[34]
         print('xxLOSSNET INIT DONE')
 
-    def normalize_for_vgg(self, x):
-        mean = torch.tensor([0.485, 0.456, 0.406]).view(-1, 1, 1).cuda()
-        std = torch.tensor([0.229, 0.224, 0.225]).view(-1, 1, 1).cuda()
+    def normalize_for_vgg(self, x, gpu = True):
+        mean = torch.tensor([0.485, 0.456, 0.406]).view(-1, 1, 1)
+        std = torch.tensor([0.229, 0.224, 0.225]).view(-1, 1, 1)
+        if gpu:
+            mean = mean.cuda()
+            std = std.cuda()
         return (x - mean) / std
 
-    def forward(self, x, out_key):
-        x = self.normalize_for_vgg(x)
+    def forward(self, x, out_key, gpu = True):
+        x = self.normalize_for_vgg(x, gpu)
         out = {}
         out['conv1_1'] = F.relu(self.conv1_1(x))
         out['conv1_2'] = F.relu(self.conv1_2(out['conv1_1']))

@@ -9,7 +9,7 @@ import time
 from style_network import *
 from loss_network import *
 from dataset import get_loader
-from opticalflow_wip import opticalflow, warp_flow, confidence_mask, array_to_torch
+#from opticalflow_wip import opticalflow, warp_flow, confidence_mask, array_to_torch
 
 
 class Transfer:
@@ -61,6 +61,7 @@ class Transfer:
         print('loading style image')
         style_img = self.load_style()
         style_img = style_img.unsqueeze(0)
+        self.mem = style_img
 
         if self.gpu:
             print('activating gpu mode')
@@ -81,7 +82,7 @@ class Transfer:
         # Idk why it's here but I don't wanna mess it up
         time.sleep(1)
         # This can be put out of the loop cause wont change through time
-        s = self.loss_net(style_img, self.style_layer)
+        s = self.loss_net(style_img, self.style_layer, self.gpu)
         print("Let's go")
         for count in range(self.epoch):
             vidnb = 0
@@ -108,10 +109,10 @@ class Transfer:
                     # print('2')
 
                     # calculate loss network outputs
-                    s_xt = self.loss_net(x_t, self.style_layer)
-                    s_xt1 = self.loss_net(x_t1, self.style_layer)
-                    s_hxt = self.loss_net(h_xt, self.style_layer)
-                    s_hxt1 = self.loss_net(h_xt1, self.style_layer)
+                    s_xt = self.loss_net(x_t, self.style_layer, self.gpu)
+                    s_xt1 = self.loss_net(x_t1, self.style_layer, self.gpu)
+                    s_hxt = self.loss_net(h_xt, self.style_layer, self.gpu)
+                    s_hxt1 = self.loss_net(h_xt1, self.style_layer, self.gpu)
                     # print('3')
 
                     # calculate content loss
@@ -157,8 +158,9 @@ class Transfer:
 
                     # putting it all together
                     spatial_loss =  self.s_b * style_loss + self.s_a * content_loss #+ self.s_r * tv_loss 
+
                     Loss = spatial_loss + self.t_l * temporal_loss 
-                    # print('7')
+                    print('epoch')
 
                     # Optimization
                     Loss.backward(retain_graph=True)
@@ -224,18 +226,18 @@ class Transfer:
             print('XXXXXXXXXXXXXXXXXXXXXXXXX')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__' and False:
     # torch.cuda.device(0)
 
     print('loading')
     # Init transfer class
     t =  Transfer(100,
-                  '/floyd/input/videos/',
+                  './video/',
                   './examples/style_img/wave.png',
-                  '/floyd/home/vgg19-dcbb9e9d.pth',
+                  '/home/arthur/.torch/models/vgg19-dcbb9e9d.pth',
                   1e-4,
                   5e-1, 1e0, 0, 1e5,
-                  gpu=True)  # Here to switch CPU/GPU
+                  gpu=False)  # Here to switch CPU/GPU
 
     # Load pretrained style
     # print('loading pretrained style...')

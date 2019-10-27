@@ -2,8 +2,6 @@ import numpy as np
 import torch
 from torchvision import transforms
 
-sys.path.extend(["/usr/local/anaconda3/lib/python3.6/site-packages/",
-                 "/home/tanguy/.conda/envs/venv/lib/python3.7/site-packages"])
 import cv2
 
 from utils import reformat
@@ -26,22 +24,22 @@ if __name__ == '__main__':
     t =  Transfer(10,
                   '../v3/video/',
                   './examples/style_img/wave.png',
-                  '/home/tfm/.torch/models/vgg19-dcbb9e9d.pth',
+                  '/home/arthur/.torch/models/vgg19-dcbb9e9d.pth',
                   1e-3,
-                  1e5, 1e7, 0, 1e-8, gpu=False)
+                  1e5, 1e7, 0, 1e-8, gpu=True)
 
     # loading model
     print('loading state_dict')
     if t.gpu:
-        t.style_net.load_state_dict(torch.load('../state_dict_WAVEWORKING_stylecontent.pth'))
+        t.style_net.load_state_dict(torch.load('./models/state_dict_WAVEWORKING_stylecontent.pth'))
     else:
-        t.style_net.load_state_dict(torch.load('../state_dict_WAVEWORKING_stylecontent.pth', map_location='cpu'))
+        t.style_net.load_state_dict(torch.load('./models/state_dict_WAVEWORKING_stylecontent.pth', map_location='cpu'))
     # t.style_net.load_state_dict(torch.load('model/state_dict_inlearning_styley3.pth'))
 
     # loading video
     # videonames = ['1_17_s.mp4', '1_3_s.mp4', '3_21_s.mp4', '3_22_s.mp4', '3_23_s.mp4', '10_16_s.mp4', '12_14_s.mp4', '15_25_s.mp4', '25_25_s.mp4', '26_28_s.mp4', 'Neon - 21368.mp4']
     # videonames = ['output1.mp4', '9_17_s.mp4', '22_26_s.mp4']
-    videonames = ['9_17_s.mp4']
+    videonames = ['1.mp4']
     # videonames = ['10_21_s.mp4', '28_14_s.mp4', '1_8_s.mp4'] #star
     # videonames = ['Neon - 21368.mp4', '15_25_s.mp4'] #mosaic
     transform = transforms.ToTensor()

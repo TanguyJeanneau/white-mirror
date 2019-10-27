@@ -4,7 +4,7 @@ from torchvision import transforms
 import sys
 
 sys.path.extend(["/usr/local/anaconda3/lib/python3.6/site-packages/",
-                 "/home/tanguy/.conda/envs/venv/lib/python3.7/site-packages"])
+                 "/home/arthur/.conda/envs/venv/lib/python3.7/site-packages"])
 import cv2
 
 

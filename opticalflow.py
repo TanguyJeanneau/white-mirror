@@ -87,9 +87,9 @@ def opticalflow1(img1, img2):
 
 if __name__ == '__main__':
     
-    data_path = '../v3/video/'    
+    data_path = 'video/'    
     img_shape = (640, 360)
-    videonames = ['2_26_s.mp4']
+    videonames = ['9_17_s.mp4']
     # videonames = ['output1.mp4', '9_17_s.mp4', '22_26_s.mp4']
     transform = transforms.ToTensor()
     loader = get_loader(1, data_path, img_shape, transform, video_list=videonames, frame_nb=10, shuffle=False)

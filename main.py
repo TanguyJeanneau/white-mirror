@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import torch
 
+import time
 from transfer import *
 
 """
@@ -46,12 +47,12 @@ if __name__ == '__main__':
     t =  Transfer(10,
                   './video/',
                   './examples/style_img/wave.png',
-                  '/home/alexandre/.torch/models/vgg19-dcbb9e9d.pth',
+                  '/home/arthur/.torch/models/vgg19-dcbb9e9d.pth',
                   1e-3,
-                  1e5, 1e7, 0, 1e-8)
+                  1e5, 1e7, 0, 1e-8, gpu=True)
     # loading model
     print('loading state_dict')
-    t.style_net.load_state_dict(torch.load(model_path,  map_location='cpu'))
+    t.style_net.load_state_dict(torch.load(model_path))
     # some params
     width = 640
     height = 360
@@ -64,6 +65,8 @@ if __name__ == '__main__':
     fourcc = cv2.VideoWriter_fourcc('F','M','P','4')
     out = cv2.VideoWriter('output.mp4', fourcc, 20.0, (2*width, height))
     count = 0
+    nb_iter = 0
+    avg = 0
     while True:
         # get cam image
         print('frame {}'.format(count))
@@ -75,7 +78,12 @@ if __name__ == '__main__':
         output = output/255
         output = torch.transpose(output, 1,3)
         output = torch.transpose(output, 3,2)
+        ti = time.time()
         output = style_transfer(output, t)
+        d= time.time() -ti
+        avg = (avg* nb_iter + d) / (nb_iter +1)
+        nb_iter +=1
+        print(avg, d)
         
         # formating
         output = reformat(output)
