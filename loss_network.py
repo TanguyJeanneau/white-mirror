@@ -7,6 +7,7 @@ import numpy as np
 
 import vgg
 from utils import print_memory_usage, reformat
+from transfer import *
 
 
 def vgg19(vgg_path, pretrained=True, **kwargs):
@@ -206,5 +207,4 @@ class GramMatrix(nn.Module):
         return 1/ (h * w) * G
 
 if __name__ == '__main__':
-    vgg_path = '/home/tanguy/.torch/models/vgg19_bn-c79401a0.pth',
-    lossnet = LossNet(vgg_path)
+    lossnet = LossNet(VGG_PATH)

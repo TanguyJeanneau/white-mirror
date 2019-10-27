@@ -9,8 +9,17 @@ import time
 from style_network import *
 from loss_network import *
 from dataset import get_loader
-#from opticalflow_wip import opticalflow, warp_flow, confidence_mask, array_to_torch
-VIDEO_PATH = 'video/'
+
+if __name__ == '__main__':
+    from opticalflow_wip import opticalflow, warp_flow, confidence_mask, array_to_torch
+else:
+    try:
+        from opticalflow_wip import opticalflow, warp_flow, confidence_mask, array_to_torch
+    except:
+
+        print("could not import opticalflow_wip; it is normal if youare running it, else, please check wth is happening :)")
+from configuration import *
+
 
 class Transfer:
     def __init__(self, epoch, data_path, style_path, vgg_path, lr, spatial_a, spatial_b, spatial_r, temporal_lambda, gpu=False, img_shape=(640, 360)):
@@ -231,7 +240,7 @@ class Transfer:
             print('XXXXXXXXXXXXXXXXXXXXXXXXX')
 
 
-if __name__ == '__main__' and False:
+if __name__ == '__main__':
     # torch.cuda.device(0)
 
     print('loading')
@@ -239,10 +248,10 @@ if __name__ == '__main__' and False:
     t =  Transfer(100,
                   VIDEO_PATH,
                   './examples/style_img/wave.png',
-                  '/home/arthur/.torch/models/vgg19-dcbb9e9d.pth',
+                  VGG_PATH,
                   1e-4,
                   5e-1, 1e0, 0, 1e5,
-                  gpu=False)  # Here to switch CPU/GPU
+                  gpu=GPU)  # See configuration.py to switch CPU/GPU
 
     # Load pretrained style
     # print('loading pretrained style...')

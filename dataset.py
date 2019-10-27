@@ -3,9 +3,7 @@ import numpy as np
 import torch.utils.data as data
 from torchvision import datasets, transforms
 
-import sys
-sys.path.extend(["/usr/local/anaconda3/lib/python3.6/site-packages/",
-                 "/home/arthur/.conda/envs/venv/lib/python3.7/site-packages"])
+from transfer import *
 import cv2
 
 
@@ -66,7 +64,7 @@ def get_loader(batch_size, data_path, img_shape, transform, shuffle=True, video_
 
 if __name__ == '__main__':
     print('start')
-    data_path = './video/'
+    data_path = VIDEO_PATH
     img_shape=(640, 360)    
     transform = transforms.Compose([transforms.ToTensor()])
 

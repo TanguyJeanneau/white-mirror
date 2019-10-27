@@ -45,11 +45,11 @@ def style_transfer(img, t):
 if __name__ == '__main__':
     model_path = 'models/state_dict_STARWORKING_contentandstyle.pth'
     t =  Transfer(10,
-                  './video/',
+                  VIDEO_PATH,
                   './examples/style_img/wave.png',
-                  '/home/arthur/.torch/models/vgg19-dcbb9e9d.pth',
+                  VGG_PATH,
                   1e-3,
-                  1e5, 1e7, 0, 1e-8, gpu=True)
+                  1e5, 1e7, 0, 1e-8, gpu=GPU)
     # loading model
     print('loading state_dict')
     t.style_net.load_state_dict(torch.load(model_path))
