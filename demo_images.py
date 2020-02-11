@@ -41,6 +41,8 @@ def load_image_as_tensor(filename, size=None, scale=None, keep_asp=False):
     elif scale is not None:
         img = img.resize((int(img.size[0] / scale), int(img.size[1] / scale)), Image.ANTIALIAS)
     img = np.array(img).transpose(2, 0, 1)
+    noise = np.random.randint(-100, 100, img.shape)
+    img = img + noise
     img = torch.from_numpy(img).float()
     img = img.unsqueeze(0)
     img = img.div_(255.)
