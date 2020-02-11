@@ -63,7 +63,7 @@ def confidence_mask(f1, f2, gpu=True):
     
     w_w = torch.norm(f1 - f1_w_w, dim=1)**2
     # Parameters to be adjusted
-    occlusion_mask = (w_w < 0.005*(torch.norm(f1, dim=1)**2 +
+    occlusion_mask = (w_w < 0.001*(torch.norm(f1, dim=1)**2 +
                                   torch.norm(f1_w_w, dim=1)**2))# - 0.005)
     occlusion_mask = occlusion_mask.type('torch.FloatTensor')
     return occlusion_mask
