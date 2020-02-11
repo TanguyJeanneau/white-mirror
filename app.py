@@ -68,7 +68,8 @@ def imglive():
     h = int(request.args['h'])
     w = int(request.args['w'])
     r = request
-    nparr = np.fromstring(r.data, np.uint8)
+    # nparr = np.fromstring(r.data, np.uint8)
+    nparr = np.frombuffer(r.data, dtype=np.uint8)
     img = nparr.reshape([h, w, 3])
     print(type(img), img.shape, img.min(), img.max())
 
@@ -81,7 +82,7 @@ def imglive():
     output = reformat(output)
     print(type(output), output.shape, output.min(), output.max())
 
-    response = make_response(output.tostring())
+    response = make_response(output.tobytes())
     return response
 
 
