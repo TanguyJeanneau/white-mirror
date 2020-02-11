@@ -3,12 +3,14 @@ from flask import Flask, request, abort, Response, make_response, send_file
 import torch
 import cv2
 import json
-import jsonpickle
 import io
+import time
+from argparse import ArgumentParser
 
 from transfer import *
 from demo_images import load_image_as_tensor
 from main import style_transfer, reformat
+from configuration import VGG_PATH
 
 app = Flask(__name__)
 
@@ -17,7 +19,7 @@ model_path = 'models/state_dict_STARWORKING_contentandstyle.pth'
 t =  Transfer(10,
               './video/',
               './examples/style_img/wave.png',
-              '/home/tfm/.torch/models/vgg19-dcbb9e9d.pth',
+              VGG_PATH,
               1e-3,
               1e5, 1e7, 0, 1e-8)
 # load style
@@ -30,6 +32,11 @@ height = 360
 @app.route('/')
 def index():
     return "Hello, World!"
+
+
+@app.route('/ping')
+def ping():
+    return request.data
 
 
 @app.route('/test', methods=['GET'])
@@ -65,6 +72,7 @@ def img():
 
 @app.route('/imglive', methods=['POST'])
 def imglive():
+    t0 = time.time()
     h = int(request.args['h'])
     w = int(request.args['w'])
     r = request
@@ -78,13 +86,30 @@ def imglive():
     output = output/255
     output = torch.transpose(output, 1,3)
     output = torch.transpose(output, 3,2)
+    t1 = time.time()
+    print('preprocessing: {}s'.format(t1-t0))
+
     output = style_transfer(output, t)
+    t2 = time.time()
+    print('style transfer: {}s'.format(t2-t1))
+
     output = reformat(output)
     print(type(output), output.shape, output.min(), output.max())
 
     response = make_response(output.tobytes())
+    t3 = time.time()
+    print('postprocessing: {}s'.format(t3-t2))
+    print('TOTAL: {}s'.format(t3-t0))
     return response
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    parser = ArgumentParser()
+    parser.add_argument('--port', type=int,
+                        dest='port', default=5000,
+                        help='wether the app is runned locally or on remote',
+                        required=False)
+    port = parser.parse_args().port
+    # 8080 for remote API
+
+    app.run(debug=True, port=port)
