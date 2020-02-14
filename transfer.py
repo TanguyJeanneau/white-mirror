@@ -10,15 +10,15 @@ from style_network import *
 from loss_network import *
  
 if __name__ == '__main__':
-    from opticalflow_wip import opticalflow, warp_flow, confidence_mask, array_to_torch
+    from opticalflow import opticalflow, warp_flow, confidence_mask, array_to_torch
     from dataset import get_loader
 else:
     try:
         from dataset import get_loader
-        from opticalflow_wip import opticalflow, warp_flow, confidence_mask, array_to_torch
+        from opticalflow import opticalflow, warp_flow, confidence_mask, array_to_torch
     except:
 
-        print("could not import opticalflow_wip.py or dataset.py; it is normal if you are running opticalflow_wip.py, else, please check wth is happening :)")
+        print("could not import opticalflow.py or dataset.py; it is normal if you are running opticalflow.py, else, please check wth is happening :)")
 
 
 class Transfer:
