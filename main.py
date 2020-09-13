@@ -4,6 +4,7 @@ import torch
 
 import time
 from transfer import *
+from configuration import *
 
 """
 Test: Uselaptop camera as continuous image flow,
@@ -52,7 +53,7 @@ if __name__ == '__main__':
                   1e5, 1e7, 0, 1e-8, gpu=GPU)
     # loading model
     print('loading state_dict')
-    t.style_net.load_state_dict(torch.load(model_path))
+    t.style_net.load_state_dict(torch.load(model_path, map_location='cpu'))
     # some params
     width = 640
     height = 360

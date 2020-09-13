@@ -15,18 +15,7 @@ Need to give a pretrained model (model_path variable)
 """
 
 if __name__ == '__main__':
-    post_url = 'http://127.0.0.1:8080/imglive'
-    # # model_path = 'models/state_dict_STARWORKING_contentandstyle.pth'
-    # model_path = 'models/state_dict_WAVEWORKING_stylecontent.pth'
-    # t =  Transfer(10,
-    #               './video/',
-    #               './examples/style_img/wave.png',
-    #               '/home/tfm/.torch/models/vgg19-dcbb9e9d.pth',
-    #               1e-3,
-    #               1e5, 1e7, 0, 1e-8)
-    # loading model
-    # print('loading state_dict')
-    # t.style_net.load_state_dict(torch.load(model_path,  map_location='cpu'))
+    post_url = 'http://127.0.0.1:5000/imglive'
     # some params
     width = 640
     height = 360
@@ -40,24 +29,20 @@ if __name__ == '__main__':
     out = cv2.VideoWriter('output.mp4', fourcc, 20.0, (2*width, height))
     count = 0
     while True:
-        # get cam image
+        t0 = time.time()
         print('frame {}'.format(count))
+        # get cam image
         check, frame = video.read()
         h, w, _ = frame.shape
-        # print(frame)
 
-        print('launching request')
         t1 = time.time()
+        print('PRE-REQUEST:  {:.2f}s'.format(t1-t0))
         # h and w are quick fix for undesired image unfolding. To be changed
-        data = frame.tobytes()
+        req = requests.post(post_url+'?h={}&w={}'.format(h, w), data=frame.tostring())
         t2 = time.time()
-        print('preprocessing: {}s'.format(t2-t1))
-        req = requests.post(post_url+'?h={}&w={}'.format(h, w), data=data)
-        t3 = time.time()
-        print('request: {}s'.format(t3-t2))
+        print('REQUEST:      {:.2f} s'.format(t2-t1))
 
-        # nparr = np.fromstring(req.content, np.uint8)
-        nparr = np.frombuffer(req.content, dtype=np.uint8)
+        nparr = np.fromstring(req.content, np.uint8)
         # VERY dirty, that's just temporary
         try:
             output = nparr.reshape([h+2, w, 3])
@@ -66,16 +51,11 @@ if __name__ == '__main__':
                 output = nparr.reshape([h, w, 3])
             except ValueError:
                 output = nparr.reshape([h+1, w, 3])
-        print(type(output), output.shape, output.min(), output.max())
         
         # concatenate images
         img = np.concatenate((frame,output),axis=1)
-        t4 = time.time()
-        print('postprocessing: {}s'.format(t4-t3))
-
         # display images
         cv2.imshow("test", img)
-
         # save img
         out.write(img)
 
@@ -84,6 +64,9 @@ if __name__ == '__main__':
         if key == ord('q') :
             break
         count += 1
+        t3 = time.time()
+        print('POST-REQUEST: {:.2f}s'.format(t3-t2))
+        print('TOTAL FRAME:  {:.2f}s'.format(t3-t0))
         
     # cleaning things
     video.release()

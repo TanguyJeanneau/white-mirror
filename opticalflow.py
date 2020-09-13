@@ -160,4 +160,4 @@ if __name__ == '__main__':
             save_image(f2_trans, 'tmp/{}_trans_frame2.jpg'.format(i))
             save_image(f1_trans_w, 'tmp/{}_trans_frame1warpedinto2.jpg'.format(i))
             save_image(rgb, 'tmp/{}_rgb.jpg'.format(i))
-            save_image(occlusion_mask, 'tmp/{}__occlusion.jpg'.format(i))
+            save_image(occlusion_mask, 'tmp/{}_occlusion.jpg'.format(i))
